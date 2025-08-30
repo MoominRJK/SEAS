@@ -1,0 +1,26 @@
+package com.example.seas.person.service;
+
+import com.example.seas.person.entity.Organizator;
+import com.example.seas.person.repository.OrganizatorRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class OrganizatorService {
+    private final OrganizatorRepository organizatorRepository;
+    public Optional<Organizator> findByUsername(String organizatorUsername) {
+        return organizatorRepository.findByUsername(organizatorUsername);
+    }
+
+    public void save(Organizator newOrganizator) {
+        organizatorRepository.save(newOrganizator);
+    }
+
+    public List<Organizator> getAllOrganizators(){
+        return organizatorRepository.findAll();
+    }
+}

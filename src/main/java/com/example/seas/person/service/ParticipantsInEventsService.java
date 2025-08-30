@@ -1,0 +1,150 @@
+package com.example.seas.person.service;
+
+import com.example.seas.common.MessageResponse;
+import com.example.seas.common.service.FileService;
+import com.example.seas.event.entity.Event;
+import com.example.seas.event.service.EventService;
+import com.example.seas.person.entity.Participant;
+import com.example.seas.person.entity.ParticipantsInEvents;
+import com.example.seas.person.entity.ParticipationCountInADay;
+import com.example.seas.person.repository.ParticipantsInEventsRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.util.*;
+
+import static com.example.seas.common.enums.MessageType.ERROR;
+import static com.example.seas.common.enums.MessageType.SUCCESS;
+
+@Service
+@RequiredArgsConstructor
+public class ParticipantsInEventsService {
+
+    private final ParticipantService participantService;
+    private final EventService eventService;
+    private final ParticipantsInEventsRepository participantsInEventsRepository;
+    private final FileService fileService;
+    ParticipantsInEvents participantInEvents = new ParticipantsInEvents();
+
+    @Transactional
+    public MessageResponse addParticipantToEvent(String username, Event event) {
+        Event eventFromDB = eventService.getEventByName(event.getName());
+        Optional<Participant> optionalParticipant = participantService.findByUsername(username);
+        if(optionalParticipant.isPresent()) {
+            Participant participant = optionalParticipant.get();
+            if(isEventNotFull(eventFromDB)){
+                increaseCurrentPeopleCountOfEvent(eventFromDB);
+            }
+            else {
+                return new MessageResponse("This event is out of quota",
+                        ERROR);
+            }
+            if(isParticipatedBeforeToEvent(username,eventFromDB)){
+                return new MessageResponse("You have already applied for this event ! ",
+                        ERROR);
+            }
+
+
+            participantInEvents.setParticipant(participant);
+            participantInEvents.setEvent(eventFromDB);
+            participantInEvents.setPartitionDate(java.time.LocalDate.now());
+            participantInEvents.setParticipantQuestions(null);
+            //TODO: PDF generation
+            final byte[] pdfAboutEventInfo = fileService.createPdfAboutEventInfo(participantInEvents);
+            participantInEvents.setEventInfoDocument(pdfAboutEventInfo);
+
+            saveNewParticipationToEvent(eventFromDB);
+            saveNewParticipationToParticipant(participant);
+           return new MessageResponse("You have successfully registered for the event." +
+                    "We send a QR Code to your e-mail with the details of the event..",
+                    SUCCESS);
+        }
+        return new MessageResponse("You could not register for this event.",
+                ERROR);
+    }
+
+
+
+    private boolean isEventNotFull(Event eventFromDB) {
+        return eventFromDB.getQuota() != eventFromDB.getCurrentNumberOfPeople();
+    }
+
+    private void increaseCurrentPeopleCountOfEvent(Event event) {
+        int numberOfPeopleInEvent = event.getCurrentNumberOfPeople();
+        event.setCurrentNumberOfPeople(numberOfPeopleInEvent + 1);
+    }
+
+    @Transactional
+    public boolean isParticipatedBeforeToEvent(String username, Event event) {
+        Optional<Participant> optionalParticipant = participantService.findByUsername(username);
+        Event eventFromDB = eventService.getEventByName(event.getName());
+        if(optionalParticipant.isPresent()) {
+            Participant participant = optionalParticipant.get();
+
+            return participantsInEventsRepository.isExistsParticipationWith
+                    (eventFromDB.getId(),
+                            participant.getId());
+        }
+        return false;
+    }
+
+    private void saveNewParticipationToEvent(Event event) {
+        event.getParticipantsInEvents().add(participantInEvents);
+        eventService.save(event);
+    }
+
+    private void saveNewParticipationToParticipant(Participant participant) {
+        participant.getParticipantsInEvents().add(participantInEvents);
+        participantService.save(participant);
+    }
+
+
+    public List<Participant> getParticipantsOfEvent(String eventName) {
+        List<Participant> participants = new ArrayList<Participant>();
+        Event event = eventService.getEventByName(eventName);
+        for(ParticipantsInEvents pie : event.getParticipantsInEvents()){
+             participants.add(pie.getParticipant());
+        }
+        return participants;
+    }
+    @Transactional
+    public List<ParticipationCountInADay> getPartipationDatesAndParticipantCountsOfEvent(Event event) {
+        List<ParticipationCountInADay> participationCountInADays =
+                participantsInEventsRepository.countOfTotalParticipantsInDays(event.getId());
+        return participationCountInADays;
+    }
+
+    @Transactional
+    public byte[] downloadPdfAboutEventInfo(ParticipantsInEvents participantInEvent) {
+
+        final String name = participantInEvent.getEvent().getName();
+        final Event eventByName = eventService.getEventByName(name);
+        final String username = participantInEvent.getParticipant().getUsername();
+        final Optional<Participant> optionalParticipant = participantService.findByUsername(username);
+
+        final Integer participantId = optionalParticipant.get().getId();
+        return participantsInEventsRepository.getParticipantInEvent(eventByName.getId(), participantId).getEventInfoDocument();
+
+    }
+
+    @Transactional
+    public MessageResponse unregisterEvent(String eventName, String userName) {
+        final Event eventByName = eventService.getEventByName(eventName);
+        final Optional<Participant> optionalParticipant = participantService.findByUsername(userName);
+        final Integer participantId = optionalParticipant.get().getId();
+
+
+        if(eventByName != null && participantId != null) {
+            participantsInEventsRepository.unregisterEvent(eventByName.getId(), participantId );
+//            List<ParticipantsInEvents> all = participantsInEventsRepository.findAll();
+//            Optional<ParticipantsInEvents> participantsInEvents = all.stream().filter( e -> e.getEvent().getName().equals(eventName)
+//            && e.getParticipant().getUsername().equals(userName)).findFirst();
+//            participantsInEventsRepository.delete(participantsInEvents.get());
+
+
+            return new MessageResponse("Event deleted.",SUCCESS);
+        }
+        return new MessageResponse("Failed to delete event.",ERROR);
+    }
+}

@@ -1,0 +1,56 @@
+package com.example.seas.security.entity;
+
+import lombok.*;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.persistence.*;
+import java.util.Set;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SequenceGenerator(name = "idgen", sequenceName = "USER_SEQ")
+@ToString
+public class Users implements UserDetails {
+
+    @Id
+    @GeneratedValue
+    private Integer id;
+
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
+
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @Column(name = "schoolId", unique = true, nullable = false)
+    private String schoolId;
+
+    @Column(name = "email", unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "phone", unique = true, nullable = false)
+    private String phone;
+
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "SURNAME")
+    private String surname;
+
+    private boolean isAccountNonExpired;
+    private boolean isAccountNonLocked;
+    private boolean isCredentialsNonExpired;
+    private boolean isEnabled;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "USER_AUTHORITIES",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "authority_id")
+    )
+    private Set<Authority> authorities;
+
+}
