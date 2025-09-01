@@ -6,19 +6,19 @@
 
 **SEAS** helps schools track student participation at events, award points, and run transparent prize drawings. It provides dashboards for students and administrators, an automated raffle by grade at the end of each quarter, and exports for analysis.
 
-- 📽️ **Demo video:** https://youtu.be/7EcdafCRrHg  
-- 📦 **Repository:** https://github.com/MoominRJK/SEAS.git
+-  **Demo video:** https://youtu.be/7EcdafCRrHg  
+- **Repository:** https://github.com/MoominRJK/SEAS.git
 
 ---
 
-## 🧭 Architecture
+## Architecture
 The app is a classic 3‑tier web system: React (UI) → Spring Boot (REST API) → PostgreSQL (DB).
 
 ![SEAS Architecture](seas_architecture.png)
 
 ---
 
-## ✨ Major Features
+## Major Features
 ![SEAS Features](seas_features.png)
 
 - Track student participation and attendance at school events.
@@ -29,17 +29,17 @@ The app is a classic 3‑tier web system: React (UI) → Spring Boot (REST API) 
 
 ---
 
-## 🗃️ Data Model (ERD)
+## Data Model (ERD)
 ![SEAS ERD](seas_erd.png)
 
 ---
 
-## 🖼️ UI – Landing Page
+## UI – Landing Page
 ![SEAS Home](seas_home.png)
 
 ---
 
-## 🚀 How to Run (Local Development)
+## How to Run (Local Development)
 
 ### Prerequisites
 - **Node.js 18+** and **npm** (or yarn) for the React frontend.
@@ -97,23 +97,7 @@ App should open at **http://localhost:3000**. Configure the API base URL in the 
 
 ---
 
-## 🧪 Quick Smoke Test
-1. Load the home page.
-2. Create or import a set of events and participants.
-3. Record attendance/participation; verify points accumulation.
-4. Trigger the **quarterly raffle** and confirm a winner per grade.
-5. Export a CSV or PDF and open it locally.
-
----
-
-## 🛡️ Notes
-- Keep secrets out of source control. Prefer environment variables or a local `application-local.properties` ignored by Git.
-- Schedule DB backups (weekly by default) per your school’s policy.
-- Consider role-based access control for **admin** vs **student**.
-
----
-
-## 📚 Tech Stack
+## Tech Stack
 - **Frontend**: React, modern JS/TS, Axios/Fetch, component library of choice.
 - **Backend**: Spring Boot (REST), JPA/Hibernate.
 - **Database**: PostgreSQL.
@@ -121,10 +105,5 @@ App should open at **http://localhost:3000**. Configure the API base URL in the 
 
 ---
 
-## 📄 License
-TBD (add MIT/Apache-2.0/etc as appropriate).
-
----
-
-## 🙌 Credits
+## Credits
 Created by **Sophie Lin**. A project to make school participation rewarding and transparent.
